@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>แบบสอบถาม</title>
+<title>แบบสอบถามลับๆ</title>
 
 <style>
 body{
@@ -34,6 +34,7 @@ button{
   cursor:pointer;
 }
 .option{background:#6366f1;color:white}
+.option:hover{opacity:.9}
 
 /* loading */
 .spinner{
@@ -51,38 +52,25 @@ button{
   background:linear-gradient(135deg,#ff9acb,#ffd6e8);
 }
 .love-btn{background:#ff4d8d;color:white}
-.no-btn{
-  background:#9ca3af;
-  color:white;
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
+.no-btn{background:#9ca3af;color:white}
+
+/* love buttons layout */
+.love-actions{
+  display:flex;
+  gap:12px;
+  margin-top:14px;
 }
 
-/* hearts float */
+/* hearts floating */
 .heart{
   position:absolute;
   color:#ff4d8d;
+  animation:float 6s linear infinite;
   pointer-events:none;
 }
-
-/* ลอย */
 @keyframes float{
-  0%{transform:translateY(0) scale(0);opacity:1}
-  30%{transform:translateY(-40vh) scale(1.4)}
-  100%{transform:translateY(-90vh) scale(0.8);opacity:0}
-}
-
-/* ระเบิด */
-@keyframes burst{
-  0%{transform:translate(0,0) scale(0)}
-  100%{
-    transform:
-      translate(var(--x),var(--y))
-      rotate(360deg)
-      scale(1.2);
-    opacity:0;
-  }
+  from{transform:translateY(100vh);opacity:1}
+  to{transform:translateY(-10vh);opacity:0}
 }
 </style>
 </head>
@@ -91,35 +79,34 @@ button{
 <div class="card" id="card"></div>
 
 <script>
-const card=document.getElementById("card");
+const card = document.getElementById("card");
 
-/* หัวใจลอยพื้นหลัง */
+/* floating hearts (เยอะ + ใหญ่ขึ้น) */
 function spawnHearts(){
   setInterval(()=>{
-    for(let i=0;i<3;i++){
+    for(let i=0;i<2;i++){
       const h=document.createElement("div");
       h.className="heart";
       h.innerText="❤";
       h.style.left=Math.random()*100+"vw";
-      h.style.fontSize=28+Math.random()*28+"px";
-      h.style.animation="float 4s linear forwards";
+      h.style.fontSize=24+Math.random()*36+"px";
       document.body.appendChild(h);
-      setTimeout(()=>h.remove(),4000);
+      setTimeout(()=>h.remove(),6000);
     }
-  },300);
+  },400);
 }
 
-/* page 1 */
+/* start */
 function start(){
   card.innerHTML=`
-    <h2>แบบสอบถาม</h2>
+    <h2>แบบสอบถามลับ</h2>
     <p>พร้อมเริ่มหรือยัง</p>
     <button class="option" onclick="aiPage()">เริ่ม</button>
   `;
 }
 start();
 
-/* AI page */
+/* AI questions */
 const aiQuestions=[
 "AI ช่วยค้นหาข้อมูลได้ไหม?",
 "AI ช่วยทำการบ้านได้ไหม?",
@@ -134,7 +121,7 @@ const aiQuestions=[
 ];
 let aiIndex=0;
 
-function aiPage(){renderAI();}
+function aiPage(){ renderAI(); }
 function renderAI(){
   card.innerHTML=`
     <div>${aiIndex+1} / ${aiQuestions.length}</div>
@@ -146,7 +133,7 @@ function renderAI(){
 }
 function nextAI(){
   aiIndex++;
-  aiIndex<aiQuestions.length?renderAI():loading();
+  aiIndex<aiQuestions.length ? renderAI() : loading();
 }
 
 /* loading */
@@ -155,7 +142,7 @@ function loading(){
     <h3>กำลังประมวลผล...</h3>
     <div class="spinner"></div>
   `;
-  setTimeout(lovePage,3500);
+  setTimeout(lovePage,3000);
 }
 
 /* love page */
@@ -167,7 +154,6 @@ const loveQuestions=[
 "รักหนูเถอะนะ"
 ];
 let loveIndex=0;
-let noCount=0;
 
 function lovePage(){
   document.body.classList.add("love-bg");
@@ -178,60 +164,54 @@ function lovePage(){
 function renderLove(){
   card.innerHTML=`
     <h2>${loveQuestions[loveIndex]}</h2>
-    <button class="love-btn" onclick="loveYes(this)">รัก</button>
-    <button class="no-btn" id="noBtn">ไม่รัก</button>
+    <div class="love-actions">
+      <button class="love-btn" onclick="loveYes()">รัก</button>
+      <button class="no-btn" id="noBtn">ไม่รัก</button>
+    </div>
   `;
-  enableEscape();
+  runAway();
 }
 
-/* หนีเมาส์ real-time */
-function enableEscape(){
+/* ปุ่มไม่รัก หนีเมาส์ real-time */
+function runAway(){
   const btn=document.getElementById("noBtn");
-  card.addEventListener("mousemove",e=>{
-    const rect=card.getBoundingClientRect();
-    const bx=btn.offsetLeft+btn.offsetWidth/2;
-    const by=btn.offsetTop+btn.offsetHeight/2;
+  btn.style.position="absolute";
 
-    const dx=e.clientX-(rect.left+bx);
-    const dy=e.clientY-(rect.top+by);
-    const dist=Math.hypot(dx,dy);
-
-    if(dist<120){
-      const angle=Math.atan2(dy,dx);
-      let x=bx-Math.cos(angle)*120;
-      let y=by-Math.sin(angle)*120;
-
-      x=Math.max(0,Math.min(rect.width-btn.offsetWidth,x));
-      y=Math.max(0,Math.min(rect.height-btn.offsetHeight,y));
-
-      btn.style.left=x+"px";
-      btn.style.top=y+"px";
-
-      noCount++;
-      loveIndex=Math.min(loveIndex+1,loveQuestions.length-1);
-      if(noCount>=6){
-        card.innerHTML="<h2>หนูงอนแล้วนะ</h2>";
-      }
+  document.addEventListener("mousemove",(e)=>{
+    const r=btn.getBoundingClientRect();
+    const dx=e.clientX-(r.left+r.width/2);
+    const dy=e.clientY-(r.top+r.height/2);
+    if(Math.sqrt(dx*dx+dy*dy)<120){
+      btn.style.left=Math.random()*260-130+"px";
+      btn.style.top=Math.random()*140+"px";
     }
   });
 }
 
-/* แตกหัวใจตอนกดรัก */
-function loveYes(btn){
-  const rect=btn.getBoundingClientRect();
-  for(let i=0;i<18;i++){
+/* heart burst */
+function heartBurst(){
+  for(let i=0;i<30;i++){
     const h=document.createElement("div");
     h.className="heart";
     h.innerText="❤";
-    h.style.left=rect.left+rect.width/2+"px";
-    h.style.top=rect.top+rect.height/2+"px";
-    h.style.fontSize=22+Math.random()*22+"px";
-    h.style.setProperty("--x",(Math.random()*300-150)+"px");
-    h.style.setProperty("--y",(Math.random()*300-150)+"px");
-    h.style.animation="burst 1.2s ease-out forwards";
+    h.style.left="50vw";
+    h.style.top="50vh";
+    h.style.fontSize=20+Math.random()*40+"px";
     document.body.appendChild(h);
-    setTimeout(()=>h.remove(),1200);
+
+    const x=Math.random()*500-250;
+    const y=Math.random()*500-250;
+    h.animate([
+      {transform:"translate(0,0)",opacity:1},
+      {transform:`translate(${x}px,${y}px)`,opacity:0}
+    ],{duration:1000,easing:"ease-out"});
+
+    setTimeout(()=>h.remove(),1000);
   }
+}
+
+function loveYes(){
+  heartBurst();
   card.innerHTML=`
     <h2>เย่</h2>
     <p>แต่หนูไม่รักพี่</p>
