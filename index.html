@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>แบบสอบถามลับๆ</title>
+<title>แบบสอบถาม</title>
 
 <style>
 body{
@@ -22,6 +22,7 @@ body{
   border-radius:22px;
   text-align:center;
   box-shadow:0 10px 40px rgba(0,0,0,.15);
+  position:relative;
 }
 button{
   width:100%;
@@ -33,7 +34,6 @@ button{
   cursor:pointer;
 }
 .option{background:#6366f1;color:white}
-.option:hover{opacity:.9}
 
 /* loading */
 .spinner{
@@ -51,28 +51,38 @@ button{
   background:linear-gradient(135deg,#ff9acb,#ffd6e8);
 }
 .love-btn{background:#ff4d8d;color:white}
-.no-btn{background:#9ca3af;color:white}
-
-/* shake */
-@keyframes shake{
-  0%{transform:translateX(0)}
-  25%{transform:translateX(-6px)}
-  50%{transform:translateX(6px)}
-  75%{transform:translateX(-6px)}
-  100%{transform:translateX(0)}
+.no-btn{
+  background:#9ca3af;
+  color:white;
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
 }
-.shake{animation:shake .3s}
 
-/* hearts */
+/* hearts float */
 .heart{
   position:absolute;
   color:#ff4d8d;
-  font-size:20px;
-  animation:float 6s linear infinite;
+  pointer-events:none;
 }
+
+/* ลอย */
 @keyframes float{
-  from{transform:translateY(100vh);opacity:1}
-  to{transform:translateY(-10vh);opacity:0}
+  0%{transform:translateY(0) scale(0);opacity:1}
+  30%{transform:translateY(-40vh) scale(1.4)}
+  100%{transform:translateY(-90vh) scale(0.8);opacity:0}
+}
+
+/* ระเบิด */
+@keyframes burst{
+  0%{transform:translate(0,0) scale(0)}
+  100%{
+    transform:
+      translate(var(--x),var(--y))
+      rotate(360deg)
+      scale(1.2);
+    opacity:0;
+  }
 }
 </style>
 </head>
@@ -81,32 +91,35 @@ button{
 <div class="card" id="card"></div>
 
 <script>
-const card = document.getElementById("card");
+const card=document.getElementById("card");
 
-/* hearts */
+/* หัวใจลอยพื้นหลัง */
 function spawnHearts(){
   setInterval(()=>{
-    const h=document.createElement("div");
-    h.className="heart";
-    h.innerText="❤";
-    h.style.left=Math.random()*100+"vw";
-    h.style.fontSize=16+Math.random()*20+"px";
-    document.body.appendChild(h);
-    setTimeout(()=>h.remove(),6000);
-  },500);
+    for(let i=0;i<3;i++){
+      const h=document.createElement("div");
+      h.className="heart";
+      h.innerText="❤";
+      h.style.left=Math.random()*100+"vw";
+      h.style.fontSize=28+Math.random()*28+"px";
+      h.style.animation="float 4s linear forwards";
+      document.body.appendChild(h);
+      setTimeout(()=>h.remove(),4000);
+    }
+  },300);
 }
 
 /* page 1 */
 function start(){
   card.innerHTML=`
-    <h2>แบบสอบถามลับ</h2>
+    <h2>แบบสอบถาม</h2>
     <p>พร้อมเริ่มหรือยัง</p>
     <button class="option" onclick="aiPage()">เริ่ม</button>
   `;
 }
 start();
 
-/* page 2 AI */
+/* AI page */
 const aiQuestions=[
 "AI ช่วยค้นหาข้อมูลได้ไหม?",
 "AI ช่วยทำการบ้านได้ไหม?",
@@ -121,9 +134,7 @@ const aiQuestions=[
 ];
 let aiIndex=0;
 
-function aiPage(){
-  renderAI();
-}
+function aiPage(){renderAI();}
 function renderAI(){
   card.innerHTML=`
     <div>${aiIndex+1} / ${aiQuestions.length}</div>
@@ -135,14 +146,10 @@ function renderAI(){
 }
 function nextAI(){
   aiIndex++;
-  if(aiIndex<aiQuestions.length){
-    renderAI();
-  }else{
-    loading();
-  }
+  aiIndex<aiQuestions.length?renderAI():loading();
 }
 
-/* page 3 loading */
+/* loading */
 function loading(){
   card.innerHTML=`
     <h3>กำลังประมวลผล...</h3>
@@ -151,7 +158,7 @@ function loading(){
   setTimeout(lovePage,3500);
 }
 
-/* page 4 love */
+/* love page */
 const loveQuestions=[
 "พี่รักหนูไหม",
 "ไม่รักจริงๆ หรอ",
@@ -167,26 +174,64 @@ function lovePage(){
   spawnHearts();
   renderLove();
 }
+
 function renderLove(){
   card.innerHTML=`
     <h2>${loveQuestions[loveIndex]}</h2>
-    <button class="love-btn" onclick="loveYes()">รัก</button>
-    <button class="no-btn" id="noBtn" onclick="loveNo(this)">ไม่รัก</button>
+    <button class="love-btn" onclick="loveYes(this)">รัก</button>
+    <button class="no-btn" id="noBtn">ไม่รัก</button>
   `;
+  enableEscape();
 }
-function loveNo(btn){
-  btn.classList.add("shake");
-  btn.style.position="relative";
-  btn.style.left=Math.random()*120-60+"px";
-  noCount++;
-  if(noCount>=5){
-    card.innerHTML=`<h2>หนูงอนแล้วนะ</h2>`;
-    return;
+
+/* หนีเมาส์ real-time */
+function enableEscape(){
+  const btn=document.getElementById("noBtn");
+  card.addEventListener("mousemove",e=>{
+    const rect=card.getBoundingClientRect();
+    const bx=btn.offsetLeft+btn.offsetWidth/2;
+    const by=btn.offsetTop+btn.offsetHeight/2;
+
+    const dx=e.clientX-(rect.left+bx);
+    const dy=e.clientY-(rect.top+by);
+    const dist=Math.hypot(dx,dy);
+
+    if(dist<120){
+      const angle=Math.atan2(dy,dx);
+      let x=bx-Math.cos(angle)*120;
+      let y=by-Math.sin(angle)*120;
+
+      x=Math.max(0,Math.min(rect.width-btn.offsetWidth,x));
+      y=Math.max(0,Math.min(rect.height-btn.offsetHeight,y));
+
+      btn.style.left=x+"px";
+      btn.style.top=y+"px";
+
+      noCount++;
+      loveIndex=Math.min(loveIndex+1,loveQuestions.length-1);
+      if(noCount>=6){
+        card.innerHTML="<h2>หนูงอนแล้วนะ</h2>";
+      }
+    }
+  });
+}
+
+/* แตกหัวใจตอนกดรัก */
+function loveYes(btn){
+  const rect=btn.getBoundingClientRect();
+  for(let i=0;i<18;i++){
+    const h=document.createElement("div");
+    h.className="heart";
+    h.innerText="❤";
+    h.style.left=rect.left+rect.width/2+"px";
+    h.style.top=rect.top+rect.height/2+"px";
+    h.style.fontSize=22+Math.random()*22+"px";
+    h.style.setProperty("--x",(Math.random()*300-150)+"px");
+    h.style.setProperty("--y",(Math.random()*300-150)+"px");
+    h.style.animation="burst 1.2s ease-out forwards";
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(),1200);
   }
-  loveIndex=Math.min(loveIndex+1,loveQuestions.length-1);
-  setTimeout(renderLove,400);
-}
-function loveYes(){
   card.innerHTML=`
     <h2>เย่</h2>
     <p>แต่หนูไม่รักพี่</p>
