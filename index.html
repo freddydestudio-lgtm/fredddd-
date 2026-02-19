@@ -1,236 +1,146 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>แบบสอบถามลับๆ</title>
+<meta charset="UTF-8" />
+<title>แบบสอบถามลับ</title>
 
 <style>
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-family:sans-serif;
-  background:#f3f4f6;
-  overflow:hidden;
-}
-.card{
-  background:white;
-  width:360px;
-  padding:28px;
-  border-radius:22px;
-  text-align:center;
-  box-shadow:0 10px 40px rgba(0,0,0,.15);
-}
-button{
-  width:100%;
-  padding:14px;
-  margin-top:10px;
-  border:none;
-  border-radius:999px;
-  font-size:16px;
-  cursor:pointer;
-}
-.option{background:#6366f1;color:white}
-.love-btn{background:#ff4d8d;color:white}
-.no-btn{background:#9ca3af;color:white;position:relative}
-
-@keyframes shake{
-  0%{transform:translateX(0)}
-  25%{transform:translateX(-6px)}
-  50%{transform:translateX(6px)}
-  75%{transform:translateX(-6px)}
-  100%{transform:translateX(0)}
-}
-.shake{animation:shake .3s}
-
-.spinner{
-  width:50px;height:50px;
-  border:5px solid #ddd;
-  border-top:5px solid #6366f1;
-  border-radius:50%;
-  margin:20px auto;
-  animation:spin 1s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.love-bg{
-  background:linear-gradient(135deg,#ff9acb,#ffc0e1);
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f3f4f6;
+  font-family: sans-serif;
 }
 
-.heart{
-  position:absolute;
-  color:#ff4d8d;
-  animation:float 6s linear infinite;
+.card {
+  background: white;
+  width: 360px;
+  padding: 28px;
+  border-radius: 22px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,.15);
 }
-@keyframes float{
-  from{transform:translateY(100vh);opacity:1}
-  to{transform:translateY(-10vh);opacity:0}
+
+button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.yes {
+  background: #ff5fa2;
+  color: white;
+}
+
+.no {
+  background: #ddd;
+  position: relative;
+}
+
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 5px solid #eee;
+  border-top: 5px solid #ff5fa2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>
 </head>
 
 <body>
-<div class="card" id="card"></div>
 
-<audio id="clickSound" src="click.mp3"></audio>
-<audio id="crySound" src="cry.mp3"></audio>
+<div class="card" id="app">
+  <h2>แบบสอบถาม AI</h2>
+  <p id="question"></p>
+  <button onclick="next()">ถัดไป</button>
+</div>
 
 <script>
-const card=document.getElementById("card");
-const clickSound=document.getElementById("clickSound");
-const crySound=document.getElementById("crySound");
-
-function safePlay(sound){
-  try{ sound.currentTime=0; sound.play(); }catch(e){}
-}
-
-/* HEARTS */
-function spawnHearts(){
-  setInterval(()=>{
-    const h=document.createElement("div");
-    h.className="heart";
-    h.innerText="❤";
-    h.style.left=Math.random()*100+"vw";
-    h.style.fontSize=14+Math.random()*24+"px";
-    document.body.appendChild(h);
-    setTimeout(()=>h.remove(),6000);
-  },500);
-}
-
-/* PAGE 1 */
-function welcome(){
-  card.innerHTML=`
-    <h2>ยินดีต้อนรับ</h2>
-    <p>คุณพร้อมจะทำแบบสอบถามนี้หรือยัง</p>
-    <button class="option" onclick="startAI()">เริ่ม</button>
-  `;
-}
-welcome();
-
-/* PAGE 2 */
+/* ---------- คำถาม AI ---------- */
 const aiQuestions = [
   "AI ช่วยค้นหาข้อมูลได้ไหม?",
   "AI ช่วยทำการบ้านได้ไหม?",
   "AI เขียนรายงานได้ไหม?",
   "AI วาดภาพได้ไหม?",
   "AI แต่งเพลงได้ไหม?",
-  "AI แปลภาษาได้ไหม?",
-  "AI ช่วยตัดต่อวิดีโอได้ไหม?",
-  "AI วิเคราะห์ข้อมูลจำนวนมากได้ไหม?",
-  "AI คิดสร้างสรรค์ได้เหมือนมนุษย์หรือไม่?",
-  "AI แทนมนุษย์ได้ทั้งหมดหรือไม่?"
+  "AI แทนมนุษย์ได้ทั้งหมดหรือไม่?",
+  "AI คิดเองได้เหมือนคนไหม?",
+  "AI มีความรู้สึกไหม?",
+  "AI ตัดสินใจแทนเราได้ไหม?",
+  "AI ควรเชื่อทั้งหมดหรือไม่?"
 ];
-let aiIndex=0;
 
-function startAI(){ renderAI(); }
+let index = 0;
+let noCount = 0;
 
-function renderAI(){
-  card.innerHTML=`
-    <div>${aiIndex+1}/${aiQuestions.length}</div>
-    <h3>${aiQuestions[aiIndex]}</h3>
-    <button class="option" onclick="nextAI()">ได้</button>
-    <button class="option" onclick="nextAI()">ได้บ้าง</button>
-    <button class="option" onclick="nextAI()">ไม่ได้</button>
+const app = document.getElementById("app");
+const q = document.getElementById("question");
+
+q.innerText = aiQuestions[index];
+
+function next() {
+  index++;
+  if (index < aiQuestions.length) {
+    q.innerText = aiQuestions[index];
+  } else {
+    loading();
+  }
+}
+
+/* ---------- หน้าโหลด ---------- */
+function loading() {
+  app.innerHTML = `
+    <h2>กำลังประมวลผล...</h2>
+    <div class="loader"></div>
+  `;
+  setTimeout(loveQuestion, 2000);
+}
+
+/* ---------- คำถามรัก ---------- */
+function loveQuestion() {
+  app.innerHTML = `
+    <h2 id="loveText">พี่รักหนูไหม</h2>
+    <br>
+    <button class="yes" onclick="yes()">รัก</button>
+    <button class="no" id="noBtn" onmouseover="run()">ไม่รัก</button>
   `;
 }
 
-function nextAI(){
-  safePlay(clickSound);
-  aiIndex++;
-  aiIndex<aiQuestions.length ? renderAI() : loading();
-}
-
-/* PAGE 3 */
-const loadingTexts=[
-"กำลังประมวลผลคำตอบ…",
-"กำลังวิเคราะห์ความรู้สึก…",
-"ตรวจพบสิ่งผิดปกติ…"
-];
-let loadIndex=0;
-
-function loading(){
-  card.innerHTML=`
-    <h3 id="loadText">${loadingTexts[0]}</h3>
-    <div class="spinner"></div>
-  `;
-  const t=setInterval(()=>{
-    loadIndex++;
-    if(loadIndex<loadingTexts.length){
-      document.getElementById("loadText").innerText=loadingTexts[loadIndex];
-    }
-  },3000);
-
-  setTimeout(()=>{
-    clearInterval(t);
-    lovePage();
-  },10000);
-}
-
-/* PAGE 4 */
-const loveQuestions=[
-"พี่รักหนูมั้ย",
-"ไม่รักจริงๆ หรอ",
-"แต่หนูรักพี่นะ",
-"รักหนูได้ไหม",
-"รักหนูเถอะนะ"
-];
-let loveIndex=0;
-let noCount=0;
-
-function lovePage(){
-  document.body.classList.add("love-bg");
-  spawnHearts();
-  renderLove();
-}
-
-function renderLove(){
-  card.innerHTML=`
-    <h2>${loveQuestions[loveIndex]}</h2>
-    <button class="love-btn" onclick="loveYes()">รัก</button>
-    <button class="no-btn" id="noBtn">ไม่รัก</button>
-  `;
-
-  const noBtn=document.getElementById("noBtn");
-
-  /* ปุ่มหนีเมาส์ */
-  noBtn.addEventListener("mouseenter",()=>{
-    noBtn.style.left=Math.random()*120-60+"px";
-    noBtn.style.top=Math.random()*40-20+"px";
-  });
-
-  noBtn.onclick=()=>loveNo(noBtn);
-}
-
-function loveNo(btn){
-  safePlay(crySound);
-  btn.classList.add("shake");
-  setTimeout(()=>btn.classList.remove("shake"),300);
+function run() {
+  const btn = document.getElementById("noBtn");
+  btn.style.left = Math.random()*120 - 60 + "px";
+  btn.style.top = Math.random()*120 - 60 + "px";
 
   noCount++;
-  loveIndex++;
+  const text = document.getElementById("loveText");
 
-  if(noCount>=5){
-    card.innerHTML=`
-      <h2>หนูงอนแล้ว</h2>
-      <p>พี่ใจร้ายมาก</p>
-    `;
-    return;
-  }
-
-  if(loveIndex<loveQuestions.length){
-    setTimeout(renderLove,400);
-  }else{
-    card.innerHTML="<h2>หนูไม่คุยกับพี่แล้ว</h2>";
+  if (noCount === 1) text.innerText = "ไม่รักจริง ๆ หรอ";
+  if (noCount === 2) text.innerText = "แต่หนูรักพี่นะ";
+  if (noCount === 3) text.innerText = "รักหนูได้ไหม";
+  if (noCount === 4) text.innerText = "รักหนูเถอะนะ";
+  if (noCount >= 5) {
+    text.innerText = "หนูงอนแล้ว";
   }
 }
 
- <script>
-function loveYes(){
-  card.innerHTML=`
+function yes() {
+  app.innerHTML = `
     <h2>…</h2>
     <p>แต่หนูไม่รักพี่</p>
   `;
 }
 </script>
+
+</body>
+</html>
