@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spicy Food Review Project</title>
+<title>Spicy Food Review</title>
 
 <style>
 :root{
@@ -23,120 +23,117 @@ body{
   color:var(--text);
 }
 
-/* Header */
 header{
-  padding:30px 20px;
+  padding:24px;
   text-align:center;
 }
-header h1{margin:0}
-header p{color:var(--muted)}
 
-/* Controls */
+h1{margin-bottom:6px}
+.subtitle{color:var(--muted)}
+
 .controls{
   max-width:900px;
-  margin:auto;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-  padding:0 20px 20px;
-}
-.controls input[type=text],
-.controls input[type=range]{
-  width:100%;
-  padding:12px;
-  border-radius:14px;
-  border:none;
-  background:var(--card);
-  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  margin:0 auto 20px;
+  display:flex;
+  gap:12px;
+  padding:0 16px;
 }
 
-/* Cards */
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:20px;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:24px;
+input[type="search"]{
+  flex:1;
+  padding:10px 14px;
+  border-radius:12px;
+  border:1px solid #ddd;
 }
+
+input[type="range"]{
+  flex:1;
+}
+
+.grid{
+  max-width:1100px;
+  margin:0 auto;
+  padding:16px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:16px;
+}
+
 .card{
   background:var(--card);
-  border-radius:22px;
-  overflow:hidden;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.05);
   cursor:pointer;
-  transition:.4s;
-  position:relative;
+  transition:.3s;
 }
-.card:hover{transform:translateY(-8px)}
+
+.card:hover{transform:translateY(-4px)}
+
 .card img{
   width:100%;
-  height:160px;
+  height:140px;
   object-fit:cover;
+  border-radius:12px;
 }
-.card-body{padding:16px}
-.card h3{margin:0}
-.region{font-size:.85rem;color:var(--muted)}
 
-/* Favorite */
-.fav{
-  position:absolute;
-  top:12px;
-  right:12px;
-  font-size:1.4rem;
+.card h3{margin:10px 0 4px}
+.card small{color:var(--muted)}
+
+.heart{
+  float:right;
   cursor:pointer;
-  color:#fff;
-  text-shadow:0 2px 6px rgba(0,0,0,.3);
+  font-size:18px;
 }
-.fav.active{color:#ff5d8f}
 
-/* Modal */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.35);
+  background:rgba(0,0,0,.4);
   display:none;
   align-items:center;
   justify-content:center;
 }
-.modal-content{
-  background:var(--card);
-  border-radius:26px;
-  padding:24px;
+
+.modal.active{display:flex}
+
+.modal-box{
+  background:white;
   width:90%;
-  max-width:520px;
-  animation:fade .35s ease;
+  max-width:420px;
+  border-radius:18px;
+  padding:20px;
 }
-@keyframes fade{
-  from{opacity:0;transform:translateY(20px)}
-  to{opacity:1;transform:translateY(0)}
-}
-.close{float:right;font-size:1.5rem;cursor:pointer}
 
-/* Stars */
-.stars span{
-  font-size:1.6rem;
+.close{
+  float:right;
   cursor:pointer;
-  color:#ddd;
+  font-weight:bold;
 }
-.stars span.active{color:#f7b801}
 
-/* Review */
+.stars span{
+  font-size:22px;
+  cursor:pointer;
+  color:#ccc;
+}
+
+.stars span.active{color:#f39c12}
+
 textarea{
   width:100%;
-  border-radius:14px;
-  border:none;
-  padding:12px;
-  background:var(--accent-soft);
-  resize:none;
+  height:80px;
+  margin-top:10px;
+  border-radius:12px;
+  padding:10px;
+  border:1px solid #ddd;
 }
+
 button{
   margin-top:10px;
-  padding:10px 18px;
-  border:none;
-  border-radius:20px;
   background:var(--accent);
-  color:#fff;
+  border:none;
+  padding:10px 18px;
+  border-radius:999px;
   cursor:pointer;
 }
 </style>
@@ -146,120 +143,94 @@ button{
 
 <header>
   <h1>🍽️ Spicy Food Review</h1>
-  <p>โปรเจกต์เว็บรีวิวอาหาร & ระดับความเผ็ด</p>
+  <div class="subtitle">เว็บรีวิวอาหาร & ระดับความเผ็ด</div>
 </header>
 
 <div class="controls">
-  <input type="text" id="search" placeholder="🔍 ค้นหาเมนูอาหาร">
-  <input type="range" min="1" max="5" value="5" id="slider">
+  <input type="search" id="search" placeholder="🔍 ค้นหาเมนู">
+  <input type="range" min="1" max="5" value="5" id="spicy">
 </div>
 
-<div class="container" id="list"></div>
+<div class="grid" id="menu"></div>
 
-<!-- Modal -->
 <div class="modal" id="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closeModal()">×</span>
-    <h2 id="mName"></h2>
-    <p id="mInfo"></p>
+  <div class="modal-box">
+    <div class="close" onclick="closeModal()">✕</div>
+    <h2 id="m-name"></h2>
+    <p id="m-info"></p>
+    <p><b>ส่วนผสม:</b> <span id="m-ing"></span></p>
 
     <div class="stars" id="stars"></div>
-
-    <textarea id="review" rows="4" placeholder="เขียนรีวิวอาหาร..."></textarea>
-    <button onclick="saveReview()">บันทึกรีวิว</button>
+    <textarea placeholder="💬 รีวิวเป็นข้อความ"></textarea>
+    <button>บันทึกรีวิว</button>
   </div>
 </div>
 
 <script>
-const menus=[
- {name:"ลาบหมู",region:"อีสาน / ไทย",spice:5},
- {name:"ต้มยำกุ้ง",region:"ไทย",spice:3},
- {name:"แกงเขียวหวาน",region:"ไทย",spice:4},
- {name:"ข้าวซอย",region:"เหนือ / ไทย",spice:2},
- {name:"ส้มตำ",region:"อีสาน / ไทย",spice:4},
- {name:"ผัดกะเพรา",region:"ไทย",spice:4},
- {name:"แกงไตปลา",region:"ใต้ / ไทย",spice:5},
- {name:"น้ำพริกหนุ่ม",region:"เหนือ / ไทย",spice:3},
- {name:"Kimchi Jjigae",region:"เกาหลี",spice:3},
- {name:"Tteokbokki",region:"เกาหลี",spice:4},
- {name:"Mapo Tofu",region:"จีน",spice:4},
- {name:"Sichuan Hotpot",region:"จีน",spice:5},
- {name:"Vindaloo",region:"อินเดีย",spice:5},
- {name:"Laksa",region:"มาเลเซีย",spice:4},
- {name:"Rendang",region:"อินโดฯ",spice:3},
- {name:"Chili Crab",region:"สิงคโปร์",spice:3},
- {name:"Spicy Ramen",region:"ญี่ปุ่น",spice:2},
- {name:"Green Curry",region:"ไทย",spice:4},
- {name:"Papaya Salad",region:"ไทย",spice:4},
- {name:"Hot Wings",region:"USA",spice:3}
+const foods=[
+{name:"ต้มยำกุ้ง",region:"ไทย",spicy:4,img:"https://images.unsplash.com/photo-1604908554161-8f0c9b6f9f95",ing:"กุ้ง พริก มะนาว ข่า"},
+{name:"ส้มตำ",region:"อีสาน ไทย",spicy:5,img:"https://images.unsplash.com/photo-1604908177522-f6f3d8f6c9b5",ing:"มะละกอ พริก น้ำปลา"},
+{name:"ลาบหมู",region:"อีสาน ไทย",spicy:4,img:"https://images.unsplash.com/photo-1623654014473-5f7f2b2a5a90",ing:"หมู พริก ข้าวคั่ว"},
+{name:"แกงไตปลา",region:"ใต้ ไทย",spicy:5,img:"https://images.unsplash.com/photo-1617196034738-26b9e8e5a0f6",ing:"ไตปลา พริก สมุนไพร"},
+{name:"น้ำพริกหนุ่ม",region:"เหนือ ไทย",spicy:3,img:"https://images.unsplash.com/photo-1628294896516-344b8c9d9e9d",ing:"พริกหนุ่ม หอม กระเทียม"},
+{name:"ข้าวซอย",region:"เหนือ ไทย",spicy:2,img:"https://images.unsplash.com/photo-1601050690597-df0568f70950",ing:"เส้น ขมิ้น กะทิ"},
+{name:"ผัดกะเพรา",region:"ไทย",spicy:4,img:"https://images.unsplash.com/photo-1623654014050-7c7a620951ed",ing:"หมู พริก กะเพรา"},
+{name:"แกงเขียวหวาน",region:"ไทย",spicy:3,img:"https://images.unsplash.com/photo-1604908177520-ec9c0a0d8b5c",ing:"กะทิ พริกแกง"},
+{name:"มัสมั่น",region:"ไทย",spicy:1,img:"https://images.unsplash.com/photo-1627308595229-7830a5c91f9f",ing:"กะทิ ถั่ว เครื่องเทศ"},
+{name:"คอหมูย่าง",region:"ไทย",spicy:2,img:"https://images.unsplash.com/photo-1617196034826-9c7d0d6b1f0f",ing:"หมู น้ำจิ้ม"},
+{name:"ซุปหน่อไม้",region:"อีสาน",spicy:3,img:"https://images.unsplash.com/photo-1604908177480-52c0d8e8e8a1",ing:"หน่อไม้ พริก"},
+{name:"ยำวุ้นเส้น",region:"ไทย",spicy:3,img:"https://images.unsplash.com/photo-1604908554158-59f9a1c7c3f5",ing:"วุ้นเส้น พริก"},
+{name:"ผัดฉ่า",region:"ไทย",spicy:5,img:"https://images.unsplash.com/photo-1617196034735-0b5c2b5c4b7a",ing:"พริก กระชาย"},
+{name:"แกงป่า",region:"ไทย",spicy:5,img:"https://images.unsplash.com/photo-1627308595101-3c9f92b40938",ing:"สมุนไพร พริก"},
+{name:"ยำแซลมอน",region:"ฟิวชั่น",spicy:2,img:"https://images.unsplash.com/photo-1617196034723-56f3e6c1f5c4",ing:"แซลมอน น้ำยำ"},
+{name:"กุ้งแช่น้ำปลา",region:"ไทย",spicy:4,img:"https://images.unsplash.com/photo-1604908177510-ff9c7b9c7a2b",ing:"กุ้ง พริก"},
+{name:"หมูแดดเดียว",region:"ไทย",spicy:1,img:"https://images.unsplash.com/photo-1617196034701-6f2a7b1c9e3d",ing:"หมู"},
+{name:"ปลาร้าทรงเครื่อง",region:"อีสาน",spicy:4,img:"https://images.unsplash.com/photo-1604908177490-9b8c7a6d5e4f",ing:"ปลาร้า พริก"},
+{name:"ผัดพริกแกง",region:"ไทย",spicy:4,img:"https://images.unsplash.com/photo-1623654014420-8d2f5a6b7c9d",ing:"พริกแกง"},
+{name:"แกงส้ม",region:"ใต้",spicy:5,img:"https://images.unsplash.com/photo-1627308595144-9f8c7a6b5d4e",ing:"พริก ขมิ้น"}
 ];
 
-let currentMenu=null;
-const list=document.getElementById("list");
-const search=document.getElementById("search");
-const slider=document.getElementById("slider");
+const menu=document.getElementById("menu");
 
 function render(){
-  list.innerHTML="";
-  menus.filter(m=>
-    m.spice<=slider.value &&
-    m.name.toLowerCase().includes(search.value.toLowerCase())
-  ).forEach(m=>{
-    const fav=localStorage.getItem("fav_"+m.name);
-    const card=document.createElement("div");
-    card.className="card";
-    card.innerHTML=`
-      <img src="https://source.unsplash.com/400x300/?food">
-      <div class="fav ${fav?'active':''}" onclick="toggleFav(event,'${m.name}')">❤</div>
-      <div class="card-body">
-        <h3>${m.name}</h3>
-        <div class="region">${m.region}</div>
-      </div>
-    `;
-    card.onclick=()=>openModal(m);
-    list.appendChild(card);
+  menu.innerHTML="";
+  const q=search.value.toLowerCase();
+  const maxSpicy=spicy.value;
+  foods.filter(f=>f.name.includes(q)&&f.spicy<=maxSpicy)
+  .forEach(f=>{
+    menu.innerHTML+=`
+    <div class="card" onclick="openModal('${f.name}')">
+      <span class="heart">❤️</span>
+      <img src="${f.img}">
+      <h3>${f.name}</h3>
+      <small>${f.region}</small>
+    </div>`;
   });
 }
-render();
 
-search.oninput=slider.oninput=render;
+search.oninput=spicy.oninput=render;
 
-function toggleFav(e,name){
-  e.stopPropagation();
-  const key="fav_"+name;
-  localStorage.getItem(key)?localStorage.removeItem(key):localStorage.setItem(key,1);
-  render();
-}
+function openModal(name){
+  const f=foods.find(x=>x.name===name);
+  modal.classList.add("active");
+  m-name.innerText=f.name;
+  m-info.innerText=`${f.region} | ความเผ็ด ${f.spicy}/5`;
+  m-ing.innerText=f.ing;
 
-function openModal(m){
-  currentMenu=m.name;
-  document.getElementById("mName").innerText=m.name;
-  document.getElementById("mInfo").innerText=m.region;
-  document.getElementById("review").value=localStorage.getItem("rev_"+m.name)||"";
-
-  const stars=document.getElementById("stars");
   stars.innerHTML="";
-  const rate=localStorage.getItem("rate_"+m.name)||0;
   for(let i=1;i<=5;i++){
-    const s=document.createElement("span");
-    s.innerText="★";
-    if(i<=rate)s.classList.add("active");
-    s.onclick=()=>{
-      localStorage.setItem("rate_"+m.name,i);
-      openModal(m);
-    };
-    stars.appendChild(s);
+    stars.innerHTML+=`<span onclick="rate(this)">★</span>`;
   }
-  document.getElementById("modal").style.display="flex";
 }
 
-function saveReview(){
-  localStorage.setItem("rev_"+currentMenu,document.getElementById("review").value);
-  alert("บันทึกรีวิวเรียบร้อย");
+function closeModal(){modal.classList.remove("active")}
+
+function rate(el){
+  [...el.parentNode.children].forEach(s=>s.classList.remove("active"));
+  el.classList.add("active");
 }
-function closeModal(){
-  document.getElementById("modal").style.display="none";
-}
+
+render();
 </script>
 
 </body>
