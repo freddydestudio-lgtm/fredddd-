@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>วันนี้กินอะไรดี</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Pridi:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --pink:#f7a4a4;
+  --cream:#fff7f2;
+  --green:#cdeac0;
+  --dark:#444;
+}
+
+*{
+  box-sizing:border-box;
+  font-family:'Pridi', serif;
+}
+
+body{
+  margin:0;
+  background:#fff;
+}
+
+/* ===== HERO ===== */
+.hero{
+  height:100vh;
+  background:
+    linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4)),
+    url("https://images.unsplash.com/photo-1546069901-ba9599a7e63c");
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:24px;
+}
+
+.hero-content{
+  max-width:760px;
+  color:#fff;
+  animation:fadeUp 1s ease;
+}
+
+.hero h1{
+  font-size:48px;
+  font-weight:500;
+}
+
+.hero p{
+  opacity:.85;
+  margin-bottom:32px;
+}
+
+/* ===== SEARCH ===== */
+.search-box{
+  background:#fff;
+  border-radius:20px;
+  padding:14px;
+  display:flex;
+  gap:10px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+}
+
+.search-box input{
+  flex:1;
+  border:none;
+  font-size:16px;
+  outline:none;
+}
+
+.search-box button{
+  background:var(--pink);
+  border:none;
+  border-radius:14px;
+  padding:12px 18px;
+  color:#fff;
+  cursor:pointer;
+  font-size:16px;
+  transition:.3s;
+}
+
+.search-box button:hover{
+  transform:scale(1.05);
+}
+
+/* ===== RESULT ===== */
+.result{
+  margin-top:24px;
+  font-size:28px;
+  font-weight:500;
+  min-height:40px;
+}
+
+/* ===== GALLERY ===== */
+.gallery{
+  background:linear-gradient(180deg,var(--cream),#fff);
+  padding:80px 6vw;
+}
+
+.gallery h2{
+  text-align:center;
+  color:var(--dark);
+  margin-bottom:40px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:24px;
+}
+
+.card{
+  background:#fff;
+  border-radius:22px;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+  transition:.4s;
+}
+
+.card:hover{
+  transform:translateY(-6px);
+}
+
+.card img{
+  width:100%;
+  height:240px;
+  object-fit:cover;
+}
+
+.card p{
+  padding:14px;
+  text-align:center;
+  color:#555;
+}
+
+/* ===== ANIMATION ===== */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px);}
+  to{opacity:1;transform:translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <h1>วันนี้กินอะไรดี 🍽️</h1>
+    <p>สุ่มอาหารไทยให้ตัดสินใจง่ายขึ้น</p>
+
+    <div class="search-box">
+      <input id="search" placeholder="ค้นหาเมนูอาหาร...">
+      <button onclick="randomFood()">สุ่ม</button>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="gallery">
+  <h2>เมนูทั้งหมด</h2>
+  <div class="grid" id="grid"></div>
+</section>
+
+<script>
+const foods = [
+  // ===== 100 เมนู =====
+  {name:"ข้าวกะเพราไก่",img:"chicken rice"},
+  {name:"ข้าวกะเพราหมู",img:"pork basil rice"},
+  {name:"ข้าวผัด",img:"fried rice"},
+  {name:"ข้าวมันไก่",img:"hainanese chicken rice"},
+  {name:"ข้าวขาหมู",img:"braised pork leg rice"},
+  {name:"ข้าวหมูแดง",img:"bbq pork rice"},
+  {name:"ข้าวหมูกรอบ",img:"crispy pork rice"},
+  {name:"ข้าวไข่เจียว",img:"omelette rice"},
+  {name:"ข้าวคลุกกะปิ",img:"shrimp paste rice"},
+  {name:"ข้าวหน้าเป็ด",img:"roast duck rice"},
+
+  {name:"ผัดไทย",img:"pad thai"},
+  {name:"ผัดซีอิ๊ว",img:"pad see ew"},
+  {name:"ราดหน้า",img:"rad na"},
+  {name:"ก๋วยเตี๋ยวเรือ",img:"boat noodles"},
+  {name:"ก๋วยเตี๋ยวต้มยำ",img:"tom yum noodles"},
+  {name:"บะหมี่หมูแดง",img:"bbq pork noodles"},
+  {name:"ขนมจีนแกงเขียวหวาน",img:"green curry noodles"},
+  {name:"ขนมจีนแกงใต้",img:"southern curry noodles"},
+  {name:"มาม่าผัด",img:"stir fried instant noodles"},
+  {name:"เย็นตาโฟ",img:"yen ta fo"},
+
+  {name:"ส้มตำ",img:"som tam"},
+  {name:"ส้มตำปูปลาร้า",img:"som tam pla ra"},
+  {name:"ไก่ทอด",img:"fried chicken"},
+  {name:"หมูปิ้ง",img:"grilled pork skewers"},
+  {name:"ลูกชิ้นปิ้ง",img:"grilled meatballs"},
+  {name:"ปอเปี๊ยะทอด",img:"spring rolls"},
+  {name:"เฟรนช์ฟรายส์",img:"french fries"},
+  {name:"นักเก็ตไก่",img:"chicken nuggets"},
+  {name:"ข้าวโพดคลุกเนย",img:"buttered corn"},
+  {name:"ไก่ป๊อป",img:"popcorn chicken"},
+
+  {name:"ขนมครก",img:"kanom krok"},
+  {name:"บัวลอย",img:"bua loi"},
+  {name:"ข้าวเหนียวมะม่วง",img:"mango sticky rice"},
+  {name:"โรตี",img:"roti"},
+  {name:"แพนเค้ก",img:"pancake"},
+  {name:"บราวนี่",img:"brownie"},
+  {name:"วาฟเฟิล",img:"waffle"},
+  {name:"ครัวซองต์",img:"croissant"},
+  {name:"เค้กช็อกโกแลต",img:"chocolate cake"},
+  {name:"ขนมถ้วย",img:"thai coconut dessert"},
+
+  {name:"ไอศกรีมกะทิ",img:"coconut ice cream"},
+  {name:"ไอศกรีมชาเขียว",img:"matcha ice cream"},
+  {name:"ไอศกรีมช็อกโกแลต",img:"chocolate ice cream"},
+  {name:"ไอศกรีมวนิลา",img:"vanilla ice cream"},
+  {name:"ไอศกรีมสตรอว์เบอร์รี",img:"strawberry ice cream"},
+  {name:"ไอศกรีมทุเรียน",img:"durian ice cream"},
+  {name:"ไอศกรีมโยเกิร์ต",img:"yogurt ice cream"},
+  {name:"ไอศกรีมมะม่วง",img:"mango ice cream"},
+  {name:"ไอศกรีมคุกกี้แอนด์ครีม",img:"cookies and cream"},
+  {name:"ไอศกรีมชานม",img:"milk tea ice cream"},
+
+  {name:"ชานมไข่มุก",img:"bubble milk tea"},
+  {name:"ชาไทย",img:"thai tea"},
+  {name:"ชาเขียว",img:"green tea"},
+  {name:"กาแฟเย็น",img:"iced coffee"},
+  {name:"โกโก้",img:"cocoa drink"},
+  {name:"นมชมพู",img:"pink milk"},
+  {name:"น้ำส้ม",img:"orange juice"},
+  {name:"น้ำแตงโมปั่น",img:"watermelon smoothie"},
+  {name:"สมูทตี้มะม่วง",img:"mango smoothie"},
+  {name:"นมสดคาราเมล",img:"caramel milk"}
+];
+
+// ===== RANDOM =====
+function randomFood(){
+  const item = foods[Math.floor(Math.random()*foods.length)];
+  document.getElementById("result").textContent = item.name;
+  document.getElementById("hero").style.backgroundImage =
+    `linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4)),
+     url(https://source.unsplash.com/1600x900/?${item.img})`;
+}
+
+// ===== RENDER GRID =====
+const grid = document.getElementById("grid");
+foods.forEach(f=>{
+  grid.innerHTML += `
+    <div class="card">
+      <img src="https://source.unsplash.com/400x400/?${f.img}">
+      <p>${f.name}</p>
+    </div>
+  `;
+});
+
+// ===== SEARCH =====
+document.getElementById("search").addEventListener("input",e=>{
+  const v = e.target.value;
+  grid.innerHTML="";
+  foods.filter(f=>f.name.includes(v)).forEach(f=>{
+    grid.innerHTML+=`
+      <div class="card">
+        <img src="https://source.unsplash.com/400x400/?${f.img}">
+        <p>${f.name}</p>
+      </div>
+    `;
+  });
+});
+</script>
+
+</body>
+</html>
